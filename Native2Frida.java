@@ -7,21 +7,17 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.FileInputStream;
 import java.io.RandomAccessFile;
-
 /*
  * Code by Rahat
  */
-
 public class Native2Frida {
     //make it true if you want to accept duplicate 0x69 address
     private static boolean acceptDuplicates = false;
     private static String methodNameRegex = "(\\bchar\\b[^;{}=()]*?|)sub_(.*?)\\(([\\w\\W]*?)\\)";
     private static String charParameterRegex = "\\bchar\\b";
-
     public static boolean isEmpty(String str) {
         return str == null || str.trim().length() == 0;
     }
-
     public static String readFile(String str) throws IOException {
         StringBuilder chunks = new StringBuilder();
         BufferedReader buff = new BufferedReader(new InputStreamReader(new FileInputStream(str)));
@@ -32,23 +28,20 @@ public class Native2Frida {
         }
         return chunks.toString().trim();
     }
-
     public static boolean writeFile(String file, String content) throws IOException {
         RandomAccessFile output = new RandomAccessFile(file, "rw");
         byte[] contentArr = content.getBytes();
         output.write(contentArr);
         return output.length() == content.length();
     }
-
     /* java Native2Frida yourFilePath outputFilePath
      * outputFilePath can be null, in that case hooks will be printed in console
      */
     public static void main(String[] args) {
         if (args.length < 1)
             return;
-        HashMap<String, Integer> hookedMethods = new HashMap<String, Integer>();
+        HashMap < String, Integer > hookedMethods = new HashMap < String, Integer > ();
         StringBuilder str = new StringBuilder();
-
         try {
             String content = readFile(args[0]);
             //System.out.println(content); if(true)return;
@@ -85,31 +78,31 @@ public class Native2Frida {
                         if (!acceptDuplicates)
                             hookedMethods.put("0x".concat(mat.group(2)), addrCount);
                         str.append("var addr");
-						str.append(addrCount);
-						str.append(" = libbase.add(0x");
-						str.append(mat.group(2));
-						str.append(");\n");
+                        str.append(addrCount);
+                        str.append(" = libbase.add(0x");
+                        str.append(mat.group(2));
+                        str.append(");\n");
                         str.append("Interceptor.attach(addr");
-						str.append(addrCount);
-						str.append(", {\n");
+                        str.append(addrCount);
+                        str.append(", {\n");
                         str.append("\tonEnter: function(args) {\n");
                         str.append("\t\tconsole.log(\"0x");
-					    str.append(mat.group(2));
-						str.append(" : \",");
+                        str.append(mat.group(2));
+                        str.append(" : \",");
                         String[] params = mat.group(3).split(",");
                         for (int i = 0; i < params.length; i++) {
                             if (paramMatcher.matcher(params[i]).find()) {
                                 indexOfChar = i;
                                 str.append(" args[");
-								str.append(indexOfChar);
-						        str.append("].readCString(),");
+                                str.append(indexOfChar);
+                                str.append("].readCString(),");
                             }
                         }
                         str.append(");\n\t},\n");
                         str.append("\tonLeave: function(retval) {\n");
                         str.append("\t\tconsole.warn(\"Return 0x");
-						str.append(mat.group(2));
-						str.append(": \", retval);\n\t}\n})\n");
+                        str.append(mat.group(2));
+                        str.append(": \", retval);\n\t}\n})\n");
                         addrCount++;
                     }
                 }
