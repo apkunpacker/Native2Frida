@@ -6,5 +6,7 @@ please let me know and send a PR
 
 ```sh
 javac Native2Frida.java
-java Native2Frida >script.js
+java Native2Frida Decompiled.c output.js
 ```
+
+If output file is not provided then code will be printed in console.
